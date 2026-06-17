@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>마법의 응원봉 강아지</title>
+    <title>꼬마과학자 AI강아지</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; text-align: center; background-color: #f0f2f5; margin: 0; padding: 0px; }
         .header-container {
@@ -72,7 +72,7 @@
 		<input type="password" id="pw-input" placeholder="비밀번호 입력" style="padding:10px; font-size:1rem;" autofocus>
 		<button onclick="checkPassword()" style="margin-top:10px; padding:10px 20px; cursor:pointer;">확인</button>
 	</div>
--->
+-->	
 	<script>
 /*
 		window.onload = function() {
@@ -88,10 +88,10 @@
 				}
 			});
 		};
-*/		
+*/
 		function checkPassword() {
 			const pw = document.getElementById('pw-input').value;
-			if (pw === "wiset") {
+			if (pw === "little") {
 				document.getElementById('auth-overlay').style.display = 'none';
 				init();
 			}
@@ -108,7 +108,7 @@
 		<img src="logo.png" alt="로고" class="logo-image">
 	</div>
 
-    <h1>강아지에게 응원봉을 흔들어주세요!</h1>
+    <h1>형광봉을 빙글빙글 돌려보세요!</h1>
     
     <div id="dog-container">
         <video id="dog-sitting" loop muted playsinline preload="auto">
@@ -127,7 +127,7 @@
     <div id="webcam-container"></div>
 
 	<script src="tf.min.js"></script>
-	<script src="teachablemachine-image.min.js"></script>	
+	<script src="teachablemachine-image.min.js"></script>
 
     <script type="text/javascript">
         const URL = "./"; 
@@ -181,7 +181,7 @@
 				const waggingVideo = document.getElementById("dog-wagging");
                 
                 // 손 흔들기(index 1) 확률 확인
-                if (prediction[1] && prediction[1].probability >= 1) {
+                if (prediction[1] && prediction[1].probability >= 0.99) {
 					lastStateChangeTime = Date.now();
 					document.getElementById("status").innerText = "너무 신나요! 고마워요~";
 					if (waggingVideo.style.opacity !== "1") {
