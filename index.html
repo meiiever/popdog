@@ -66,15 +66,13 @@
     </style>
 </head>
 <body>
-<!--
 	<div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;">
 		<h2>🔒 인증이 필요합니다</h2>
 		<input type="password" id="pw-input" placeholder="비밀번호 입력" style="padding:10px; font-size:1rem;" autofocus>
 		<button onclick="checkPassword()" style="margin-top:10px; padding:10px 20px; cursor:pointer;">확인</button>
 	</div>
--->
+	
 	<script>
-/*
 		window.onload = function() {
 			const pwInput = document.getElementById('pw-input');
 		
@@ -88,10 +86,10 @@
 				}
 			});
 		};
-*/		
+
 		function checkPassword() {
 			const pw = document.getElementById('pw-input').value;
-			if (pw === "wiset") {
+			if (pw === "little") {
 				document.getElementById('auth-overlay').style.display = 'none';
 				init();
 			}
