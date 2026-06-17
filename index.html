@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마법의 응원봉 강아지</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; text-align: center; background-color: #f0f2f5; margin: 0; padding: 0px; }
+        .header-container {
+            background-color: #f0f2f5; /* 로고 배경색 */
+            padding: 0px 0; /* 위아래 여백 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* 하단 그림자 */
+			position: sticky; /* 화면 고정 */
+			top: 0;           /* 화면 최상단에 고정 */
+			z-index: 1000;    /* 다른 요소(영상 등)보다 항상 위에 보이도록 설정 */
+            margin-bottom: 5px; /* 아래 요소와의 간격 */
+        }
+        .logo-image {
+            max-width: 360px; /* 최대 너비 */
+            height: auto; /* 비율 유지 */
+            display: block;
+            margin: 0 auto;
+        }
+        h1 {
+			font-size: 1.3rem;      /* 기본 1.8rem */
+			font-weight: 700;       /* 글자 굵기 (600~700 권장) */
+			color: #333;            /* 글자 색상 */
+			margin: 5px 0;         /* 위아래 여백 */
+			letter-spacing: -0.5px; /* 글자 간격 */
+		}
+		#dog-container { 	
+			width: 360px; height: 360px; 
+			margin: 5px auto; 
+			position: relative; 
+			background: white; 
+			border-radius: 30px; 
+			overflow: hidden; 
+		}
+		#dog-sitting, #dog-wagging {
+			width: 100%; height: 100%;
+			object-fit: contain;
+			position: absolute; /* 겹치기 위해 절대 위치 설정 */
+			top: 0; left: 0;
+			transition: opacity 0s ease-in-out; /* 부드럽게 변함 */
+		}
+		#dog-sitting { opacity: 1; z-index: 2; }
+		#dog-wagging { opacity: 0; z-index: 1; }
+        #webcam-container { margin: 10px auto; border: 4px solid #fff; width: 220px; height: 220px; border-radius: 50%; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        #canvas-container { position: relative; display: inline-block; margin-top: 0px; }
+        #label-container { margin-top: 15px; font-size: 1.2rem; font-weight: bold; color: #555; }
+		#pw-input {
+			padding: 12px 20px;
+			font-size: 1rem;
+			border: 2px solid #dfe6e9;
+			border-radius: 10px;
+			outline: none;
+			transition: border-color 0.3s;
+			width: 200px;
+			text-align: center;
+		}
+		#pw-input:focus {
+			border-color: #74b9ff;
+		}
+        .status { font-size: 1.2rem; font-weight: bold; color: #444; margin: 5px; }
+        .loading { color: #888; font-style: italic; }
+    </style>
+</head>
+<body>
+<!--
+	<div id="auth-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+		<h2>🔒 인증이 필요합니다</h2>
+		<input type="password" id="pw-input" placeholder="비밀번호 입력" style="padding:10px; font-size:1rem;" autofocus>
+		<button onclick="checkPassword()" style="margin-top:10px; padding:10px 20px; cursor:pointer;">확인</button>
+	</div>
+-->
+	<script>
+/*
+		window.onload = function() {
+			const pwInput = document.getElementById('pw-input');
+		
+			if (pwInput) {
+				pwInput.focus();
+			}
+
+			pwInput.addEventListener('keypress', function(e) {
+				if (e.key === 'Enter') {
+					checkPassword();
+				}
+			});
+		};
+*/		
+		function checkPassword() {
+			const pw = document.getElementById('pw-input').value;
+			if (pw === "wiset") {
+				document.getElementById('auth-overlay').style.display = 'none';
+				init();
+			}
+			else {
+				//alert("비밀번호가 틀렸습니다.");
+				document.getElementById('pw-input').value = "";
+				document.getElementById('pw-input').focus();
+			}
+		}
+	// 기존에 있던 window.onload = init; 은 삭제하거나 주석 처리하세요.
+	</script>
+
+    <div class="header-container">
+		<img src="logo.png" alt="로고" class="logo-image">
+	</div>
+
+    <h1>강아지에게 형광봉을 돌려주세요!</h1>
+    
+    <div id="dog-container">
+        <video id="dog-sitting" loop muted playsinline preload="auto">
+            <source src="sitting.mp4" type="video/mp4">
+            비디오를 지원하지 않는 브라우저입니다.
+        </video>
+        
+        <video id="dog-wagging" loop muted playsinline preload="auto">
+            <source src="wagging.mp4" type="video/mp4">
+            비디오를 지원하지 않는 브라우저입니다.
+        </video>
+    </div>
+
+    <div id="status" class="status">잠시만요~</div>
+
+    <div id="webcam-container"></div>
+
+	<script src="tf.min.js"></script>
+	<script src="teachablemachine-image.min.js"></script>
+
+    <script type="text/javascript">
+        const URL = "./"; 
+
+        let model, webcam, ctx, labelContainer, maxPredictions;
+		let sittingVideo, waggingVideo;
+
+		let str = "";
+
+		async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            try {
+				model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+
+                const size = 220;
+                const flip = true;
+                webcam = new tmImage.Webcam(size, size, flip);
+                await webcam.setup();
+                await webcam.play();
+                
+				document.getElementById("webcam-container").appendChild(webcam.canvas);
+				window.requestAnimationFrame(loop);
+            } catch (e) {
+                console.error("초기화 에러:", e);
+                alert("카메라를 불러올 수 없습니다. 로컬 서버로 실행 중인지 확인하세요! - " + "str : " + e);
+            }
+        }
+
+		let isProcessing = false; // 중복 실행 방지 플래그
+
+        async function loop() {
+            if (!isProcessing) {
+                webcam.update(); // 웹캠 업데이트
+                await predict(); // 예측이 끝날 때까지 대기
+            }
+            window.requestAnimationFrame(loop);
+        }
+		
+		let lastStateChangeTime = 0; // 마지막으로 상태가 변한 시간 (밀리초)
+		const MIN_PLAY_TIME = 1500;  // 최소 재생 시간
+			
+        async function predict() {
+            isProcessing = true; // 예측 시작
+			const currentTime = Date.now(); // 현재 시간 기록
+            try {
+				const prediction = await model.predict(webcam.canvas);
+				const sittingVideo = document.getElementById("dog-sitting");
+				const waggingVideo = document.getElementById("dog-wagging");
+                
+                // 손 흔들기(index 1) 확률 확인
+                if (prediction[1] && prediction[1].probability >= 0.99) {
+					lastStateChangeTime = Date.now();
+					document.getElementById("status").innerText = "너무 신나요! 고마워요~";
+					if (waggingVideo.style.opacity !== "1") {
+						waggingVideo.style.transition = "opacity 0s ease-in-out";
+						sittingVideo.style.transition = "opacity 0s ease-in-out";
+						
+						waggingVideo.currentTime = 0;
+						waggingVideo.play().then(() => {
+							sittingVideo.style.opacity = "0";
+							waggingVideo.style.opacity = "1";
+							//setTimeout(() => { if(isWagging) sittingVideo.pause(); }, 0);
+						});
+					}
+				}
+				else if (currentTime - lastStateChangeTime >= MIN_PLAY_TIME) {
+					document.getElementById("status").innerText = "심심해요~";
+					if (sittingVideo.style.opacity !== "1") {
+						waggingVideo.style.transition = "opacity 0.5s ease-in-out";
+						sittingVideo.style.transition = "opacity 0.5s ease-in-out";
+						
+						sittingVideo.currentTime = 0;
+						sittingVideo.play().then(() => {
+							sittingVideo.style.opacity = "1";
+							waggingVideo.style.opacity = "0";
+							setTimeout(() => { if(isWagging) waggingVideo.pause(); }, 500);
+						});
+					}
+                }
+            } catch (err) {
+                console.error("예측 중 에러:", err);
+				alert("predict error - " + err);
+            }
+            isProcessing = false; // 예측 종료 후 다음 루프 허용
+        }
+		
+        // 페이지 로드 시 바로 실행
+        init();
+    </script>
+</body>
+</html>
