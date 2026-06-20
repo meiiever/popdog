@@ -1,1 +1,1 @@
-{"tfjsVersion":"1.7.4","tmVersion":"2.4.14","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2026-06-20T06:17:14.977Z","userMetadata":{},"modelName":"tm-my-image-model","labels":["형광봉이 가만히 있을때","형광봉을 돌릴거나 흔들때"],"imageSize":224}
+{"tfjsVersion":"1.7.4","tmVersion":"2.4.14","packageVersion":"0.8.4-alpha2","packageName":"@teachablemachine/image","timeStamp":"2026-06-20T06:23:51.749Z","userMetadata":{},"modelName":"tm-my-image-model","labels":["형광봉이 가만히 있을때","형광봉을 돌릴거나 흔들때"],"imageSize":224}
